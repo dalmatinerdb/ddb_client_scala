@@ -1,0 +1,33 @@
+/RUNNING_PID
+/logs/
+/build/*.jar
+/project/*-shim.sbt
+/project/project/
+/project/target/
+/target/
+tags
+
+# Eclipse
+/.classpath
+/.project
+
+*.class
+*.log
+
+# sbt specific
+.cache
+.history/
+.lib/
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+# Scala-IDE specific
+.scala_dependencies
+.worksheet
+.idea/
+.idea
+
