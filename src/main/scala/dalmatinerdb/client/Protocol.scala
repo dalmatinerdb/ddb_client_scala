@@ -24,7 +24,6 @@ private[client] object Protocol {
 
   private val dataSize = 8 // in bytes
   private val charset: Charset = StandardCharsets.UTF_8
-  private val timestamp: Codec[Long] = int64
 
   private val bucket: Codec[String] =
     variableSizeBytes(uint8, string(charset)).withToString(s"bucket(${charset.displayName})")
@@ -38,6 +37,7 @@ private[client] object Protocol {
   val int56: Codec[Long] = new IntCodec(56)
   val int48: Codec[Long] = new IntCodec(48)
   val flushCodec: Codec[Unit] = sentry(MessageTypes.Flush)
+  val timestamp: Codec[Long] = int64
 
   val enableStream = {
 

@@ -24,5 +24,7 @@ scalacOptions ++= compilerOptions
 
 libraryDependencies ++= Seq(
   "com.twitter" %% "finagle-core" % "6.35.0",
-  "org.scodec"  %% "scodec-core"  % "1.10.0"
+  "org.scodec"  %% "scodec-core"  % "1.10.0",
+  "org.scalatest" %% "scalatest" % "2.1.6" % "test",
+  "org.scalacheck" %% "scalacheck" % "1.12.5" % "test"
 )
