@@ -68,7 +68,7 @@ object DalmatinerDb extends com.twitter.finagle.Client[Request, Result]
       params: Stack.Params = StackClient.defaultParams + DefaultPool.Param(
         low = 0, high = 1, bufferSize = 0,
         idleTime = Duration.Top,
-        maxWaiters = Int.MaxValue) + ProtocolLibrary("mysql")): Client = copy(stack, params)
+        maxWaiters = Int.MaxValue) + ProtocolLibrary("ddb")): Client = copy(stack, params)
 
     protected def newTransporter = Netty3Transporter[Packet, Packet](
       new DalmatinerDbClientPipelineFactory(Startup(params)), params)
