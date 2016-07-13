@@ -20,7 +20,6 @@ private[dalmatinerdb] object Startup {
     * @param value the number of seconds before a flush operation
     */
   case class Delay(value: Option[Int]) {
-
     require(value.isEmpty || value.get <= 255, "delay must be < 255")
     require(value.isEmpty || value.get > 0, "delay must be > 0")
   }

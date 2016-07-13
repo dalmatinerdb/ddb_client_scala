@@ -71,7 +71,7 @@ object DalmatinerDb extends com.twitter.finagle.Client[Request, Result]
         maxWaiters = Int.MaxValue) + ProtocolLibrary("mysql")): Client = copy(stack, params)
 
     protected def newTransporter = Netty3Transporter[Packet, Packet](
-      DalmatinerDbClientPipelineFactory, params)
+      new DalmatinerDbClientPipelineFactory(Startup(params)), params)
 
     protected def newDispatcher(transport: Transport[Packet, Packet]): Service[Request, Result] = {
       new dalmatinerdb.client.ClientDispatcher(transport, Startup(params))

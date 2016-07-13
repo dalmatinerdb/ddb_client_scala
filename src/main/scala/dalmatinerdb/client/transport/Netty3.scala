@@ -1,10 +1,10 @@
 package dalmatinerdb.client.transport
 
 import com.twitter.util.NonFatal
+import dalmatinerdb.client.Startup
 import org.jboss.netty.buffer.ChannelBuffer
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.frame.{FrameDecoder, LengthFieldPrepender}
-
 
 private[transport] final class PacketFrameDecoder extends FrameDecoder {
 
@@ -50,14 +50,20 @@ private[transport] final class PacketWriter extends SimpleChannelDownstreamHandl
 /**
   * A Netty3 pipeline that is responsible for framing network traffic
  */
-private[dalmatinerdb] object DalmatinerDbClientPipelineFactory extends ChannelPipelineFactory {
+private[dalmatinerdb] final class DalmatinerDbClientPipelineFactory(startup: Startup)
+  extends ChannelPipelineFactory {
+
   val FrameLengthFieldLength = 4
   val maximumPayloadBytes = Int.MaxValue
 
   def getPipeline = {
     val pipeline = Channels.pipeline()
     pipeline.addLast("packetDecoder", new PacketFrameDecoder)
-    //pipeline.addLast("packetHeaderWriter", new LengthFieldPrepender(FrameLengthFieldLength))
+
+    // A Dalmatiner node manages packet control itself when in stream mode
+    if (!startup.isStreamMode)
+      pipeline.addLast("packetHeaderWriter", new LengthFieldPrepender(FrameLengthFieldLength))
+
     pipeline.addLast("packetWriter", new PacketWriter)
     pipeline
   }

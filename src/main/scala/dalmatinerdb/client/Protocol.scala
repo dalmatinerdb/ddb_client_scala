@@ -5,7 +5,6 @@ import java.nio.charset.{Charset, StandardCharsets}
 import scodec._
 import scodec.bits.BitVector
 
-
 private[client] object MessageTypes {
   final val ListMetrics  = 1  // not supported yet
   final val Query        = 2
@@ -24,7 +23,6 @@ private[client] object Protocol {
   import scodec.codecs._
 
   private val dataSize = 8 // in bytes
-
   private val charset: Charset = StandardCharsets.UTF_8
   private val timestamp: Codec[Long] = int64
 
@@ -39,7 +37,6 @@ private[client] object Protocol {
 
   val int56: Codec[Long] = new IntCodec(56)
   val int48: Codec[Long] = new IntCodec(48)
-
   val flushCodec: Codec[Unit] = sentry(MessageTypes.Flush)
 
   val enableStream = {
@@ -84,13 +81,11 @@ private[client] object Protocol {
   }.dropUnits.as[Query]
 
   val queryResult: Codec[RawQueryResult] = {
-    {
-      (("size"             | int32                                  ) >>:~ { l =>
-        ("resolution"      | int64                                     ) ::
-        ("values"          | fixedSizeBytes(l-dataSize, list(valueCodec)))
-      })
-    }.dropUnits.as[RawQueryResult]
-  }
+    (("size"             | int32  ) >>:~ { l =>
+      ("resolution"      | int64                                     ) ::
+      ("values"          | fixedSizeBytes(l-dataSize, list(valueCodec)))
+    })
+  }.dropUnits.as[RawQueryResult]
 
   private def sentry(i: Int): Codec[Unit] = uint8.unit(i)
 

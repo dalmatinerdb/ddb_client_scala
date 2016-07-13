@@ -1,6 +1,5 @@
 package dalmatinerdb.client
 
-
 /**
   * All datapoints values are represented as a decimal point in time
   * @param time the timestamp of the recorded value
