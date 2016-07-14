@@ -69,7 +69,7 @@ For efficiency reasons, the Dalmatiner TCP endpoint can only accept incoming dat
 ## TODO
 
 - [ ] Improve error handling
-- [ ] Some operations are not supported, such as flushing, listing buckets and listing metrics
+- [ ] Some operations are not supported, such as listing buckets and listing metrics
 - [ ] Support raw SQL queries and result set iterators
 - [ ] Better use of streaming interfaces - at this time the packet decoder consumes a packet in its entirety
 
