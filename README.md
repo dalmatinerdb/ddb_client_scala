@@ -23,14 +23,14 @@ Details of the DalmatinerDB network protocol can be found on the [project's webs
 
 ## Using the client
     
-    import dalmatinerDb.DalmatinerDb
+    import dalmatinerdb.DalmatinerDb
     import com.twitter.util.Await
     
     val client = DalmatinerDb.client.newRichClient("127.0.0.1:5555")
 
 It is also possible to specify a cluster and allow the client to load balance between nodes:
 
-    val client = DalmatinerDb.client.newRichClient("127.0.0.1:5555,127.0.0.2:5555,127.0.0.3:5555")
+    val client = Dalmatinerdb.client.newRichClient("127.0.0.1:5555,127.0.0.2:5555,127.0.0.3:5555")
 
 Once all operations have been completed, the client should be closed:
 
@@ -63,7 +63,7 @@ DalmatinerDB also has a expressive query language and query engine that accessib
 
 For efficiency reasons, the Dalmatiner TCP endpoint can only accept incoming data when in stream mode. Therefore, in order to write data points, a client connection needs to be created in stream mode as follows:
 
-    val client = DalmatinerDb.client.withBucket("fd").withDelay(2).newRichClient("127.0.0.1:5555")
+    val client = dalmatinerdb.client.withBucket("fd").withDelay(2).newRichClient("127.0.0.1:5555")
     val wres = client.write("base.test", 1468419405, 0.1D)
 
 ## TODO
