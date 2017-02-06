@@ -2,6 +2,7 @@ package dalmatinerdb.client
 
 import java.nio.charset.{Charset, StandardCharsets}
 
+import org.xerial.snappy.Snappy
 import scodec._
 import scodec.bits.BitVector
 
@@ -40,7 +41,6 @@ private[client] object Protocol {
   val timestamp: Codec[Long] = int64
 
   val enableStream = {
-
     val inner = {
       ("sentry"          | sentry(MessageTypes.EnableStream)       ) ::
       ("delay"           | uint8                                   ) ::
@@ -80,12 +80,7 @@ private[client] object Protocol {
     ("count"           | uint32                                    )
   }.dropUnits.as[Query]
 
-  val queryResult: Codec[RawQueryResult] = {
-    (("size"             | int32  ) >>:~ { l =>
-      ("resolution"      | int64                                     ) ::
-      ("values"          | fixedSizeBytes(l-dataSize, list(valueCodec)))
-    })
-  }.dropUnits.as[RawQueryResult]
+  val queryResultDecoder: Decoder[List[Value]] = new QueryResultDecoder
 
   private def sentry(i: Int): Codec[Unit] = uint8.unit(i)
 
@@ -104,6 +99,41 @@ private[client] object Protocol {
       if (result.size != size)
         Attempt.failure(new Err.InsufficientBits(size, result.size))
       else Attempt.successful(DecodeResult(result.toLong(), remaining))
+    }
+  }
+
+  private class QueryResultDecoder extends Decoder[List[Value]] {
+    private val sizeCodec = int32
+
+    private val snappy = new Codec[BitVector] {
+      def sizeBound = SizeBound.unknown
+
+      def encode(b: BitVector) =
+        Attempt.successful(BitVector(Snappy.compress(b.bytes.toArray)))
+
+      def decode(b: BitVector) = {
+        lazy val raw = b.bytes.toArray
+        val remaining = BitVector.empty
+
+        if (!Snappy.isValidCompressedBuffer(raw))
+          Attempt.successful(DecodeResult(b, remaining))
+        else {
+          val res = BitVector(Snappy.uncompress(raw))
+          Attempt.successful(DecodeResult(res, remaining))
+        }
+      }
+    }
+
+    private def padding =
+      discriminated[BitVector].by(int8)
+        .\ (1) { case unpadded => unpadded } (snappy)
+        .\ (2) { case padded => padded } (snappy)
+
+    def decode(buffer: BitVector) = {
+      for {
+        decompressed <- variableSizeBytes(int32, padding).decode(buffer)
+        values <- list(valueCodec).decode(decompressed.value)
+      } yield values
     }
   }
 }

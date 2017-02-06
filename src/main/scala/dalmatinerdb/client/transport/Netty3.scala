@@ -5,6 +5,7 @@ import dalmatinerdb.client.Startup
 import org.jboss.netty.buffer.ChannelBuffer
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.frame.{FrameDecoder, LengthFieldPrepender}
+import org.xerial.snappy.Snappy;
 
 private[transport] final class PacketFrameDecoder extends FrameDecoder {
 

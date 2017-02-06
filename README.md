@@ -63,7 +63,7 @@ DalmatinerDB also has a expressive query language and query engine that accessib
 
 For efficiency reasons, the Dalmatiner TCP endpoint can only accept incoming data when in stream mode. Therefore, in order to write data points, a client connection needs to be created in stream mode as follows:
 
-    val client = dalmatinerdb.client.withBucket("fd").withDelay(2).newRichClient("127.0.0.1:5555")
+    val client = Dalmatinerdb.client.withBucket("fd").withDelay(2).newRichClient("127.0.0.1:5555")
     val wres = client.write("base.test", 1468419405, 0.1D)
 
 ## TODO

@@ -94,19 +94,20 @@ class ClientDispatcher(trans: Transport[Packet, Packet], startup: Startup)
       case e: EnableStream => Ok
 
       case Query(_bucket, _metric, time, count) =>
-        val q: RawQueryResult =
-          Protocol.queryResult.decode(BitVector(raw)).require.value
+        val result: List[Value] =
+          Protocol.queryResultDecoder.decode(BitVector(raw)).require.value
+
         val startTime = time
         val endTime = time + count
         val range = startTime to endTime
 
         val datapoints = range
-          .zip(q.points)
+          .zip(result)
           .collect {
             case (t, i: IntValue) => DataPoint(t, i.value.toDouble)
             case (t, f: FloatValue) => DataPoint(t, f.value)
           }
-        QueryResult(q.resolution, datapoints.toList)
+        QueryResult(datapoints.toList)
     }
 
     val res = Try {
