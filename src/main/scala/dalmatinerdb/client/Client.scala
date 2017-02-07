@@ -19,6 +19,7 @@ trait Client extends Closable {
   def query(bucket: String, metric: String, time: Long, count: Long): Future[Result]
   def write(metric: String, time: Long, value: Double): Future[Result]
   def flush(): Future[Result]
+  def close(): Future[Unit]
 }
 
 final class StdClient(val factory: ServiceFactory[Request, Result]) extends Client {

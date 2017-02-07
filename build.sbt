@@ -2,7 +2,7 @@ name := "ddb_client_scala"
 
 version := "0.1"
 
-scalaVersion := "2.10.5"
+scalaVersion := "2.11.7"
 
 lazy val compilerOptions = Seq(
   "-deprecation",
@@ -26,6 +26,5 @@ libraryDependencies ++= Seq(
   "org.scodec"  %% "scodec-core"  % "1.10.0",
   "org.scalatest" %% "scalatest" % "2.1.6" % "test",
   "org.scalacheck" %% "scalacheck" % "1.12.5" % "test",
-  "org.xerial.snappy" % "snappy-java" % "1.1.3-M2",
-  compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+  "org.xerial.snappy" % "snappy-java" % "1.1.3-M2"
 )
