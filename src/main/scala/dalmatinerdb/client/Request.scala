@@ -91,7 +91,7 @@ final case class FloatValue(exp: Int, coefficient: Long) extends Value {
 }
 
 object FloatValue {
-  /** Factory function for instantiating a [[dalmatinerdb.client.FloatValue]] from an [[Double]] */
+  /** Factory function for instantiating a [[dalmatinerdb.client.FloatValue]] from an Double */
   def apply(x: Double): FloatValue = {
     val coefficient_digits = 13
     val sign = if (x >= 0) 1 else -1
@@ -101,10 +101,10 @@ object FloatValue {
     FloatValue(exponent, coefficient)
   }
 
-  /** Factory function for instantiating a [[dalmatinerdb.client.FloatValue]] from an [[Integer]] */
+  /** Factory function for instantiating a [[dalmatinerdb.client.FloatValue]] from an Integer */
   def apply(i: Int): FloatValue = FloatValue(0, i)
 
-  /** Factory function for instantiating a [[dalmatinerdb.client.FloatValue]] from a [[String]] */
+  /** Factory function for instantiating a [[dalmatinerdb.client.FloatValue]] from a String */
   def apply(s: String): Option[FloatValue] = {
     Try(s.toInt).toOption
       .map((i: Int) => FloatValue(i))
@@ -113,7 +113,7 @@ object FloatValue {
 }
 
 object IntValue {
-  /** Factory function for instantiating a [[dalmatinerdb.client.IntValue]] from a [[String]] */
+  /** Factory function for instantiating a [[dalmatinerdb.client.IntValue]] from a String */
   def apply(s: String): Option[IntValue] =
     Try(s.toInt)
       .toOption
@@ -122,7 +122,7 @@ object IntValue {
 
 
 object Value {
-  /** Factory function for instantiating a [[dalmatinerdb.client.Value]] from a [[String]], will
+  /** Factory function for instantiating a [[dalmatinerdb.client.Value]] from a String, will
     * attempt to parse the string in the following order: boolean -> integer -> float
     * Note that booleans are represented by the integers 0 and 1. */
   def apply(value: String): Value = {

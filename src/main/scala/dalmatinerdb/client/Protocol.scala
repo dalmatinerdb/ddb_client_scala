@@ -126,6 +126,7 @@ private[client] object Protocol {
 
     private def padding =
       discriminated[BitVector].by(int8)
+        .\ (0) { case empty => empty } (snappy)
         .\ (1) { case unpadded => unpadded } (snappy)
         .\ (2) { case padded => padded } (snappy)
 

@@ -14,7 +14,7 @@ This client allows Scala (or Java) libraries to make use of DalmatinerDB as a me
 The client is built on Scala 2.11.8. To build the client, run:
 
     ./build/sbt assembly
-    
+
 (You do not need to do this if you downloaded a pre-built package.)
 
 ## Network protocol
@@ -22,10 +22,10 @@ The client is built on Scala 2.11.8. To build the client, run:
 Details of the DalmatinerDB network protocol can be found on the [project's website](http://dalmatinerdb.readthedocs.io/en/latest/proto.html)
 
 ## Using the client
-    
+
     import dalmatinerdb.DalmatinerDb
     import com.twitter.util.Await
-    
+
     val client = DalmatinerDb.client.newRichClient("127.0.0.1:5555")
 
 It is also possible to specify a cluster and allow the client to load balance between nodes:
@@ -35,7 +35,7 @@ It is also possible to specify a cluster and allow the client to load balance be
 Once all operations have been completed, the client should be closed:
 
     client.close()
-    
+
 ## Querying data
 
 Queries are formulated by supplying an initial timestamp and a count of the number of points to be returned:

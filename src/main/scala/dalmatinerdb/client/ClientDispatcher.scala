@@ -1,8 +1,10 @@
 package dalmatinerdb.client
 
+import com.twitter.concurrent.AsyncStream
+import com.twitter.finagle.{CancelledRequestException, WriteException}
 import com.twitter.finagle.dispatch.GenSerialClientDispatcher
 import com.twitter.finagle.transport.Transport
-import com.twitter.finagle.{CancelledRequestException, WriteException}
+import com.twitter.io.Buf
 import com.twitter.util._
 import scodec.bits.BitVector
 
@@ -15,6 +17,8 @@ class ClientDispatcher(trans: Transport[Packet, Packet], startup: Startup)
   extends GenSerialClientDispatcher[Request, Result, Packet, Packet](trans) {
 
   import ClientDispatcher._
+
+  private val eof = Array[Byte](0.toByte, 0.toByte, 0.toByte, 1.toByte, 0.toByte)
 
   // The assumption is that one dispatcher is used per connection, as this
   // could be a race condition otherwise
@@ -36,29 +40,18 @@ class ClientDispatcher(trans: Transport[Packet, Packet], startup: Startup)
     }
 
   protected def dispatch(req: Request, rep: Promise[Result]): Future[Unit] =
-    trans.write(encodePacket(req)) rescue {
+    trans.write(encode(req)) rescue {
       wrapWriteException
     } before {
-      val signal = new Promise[Unit]
-      if (startup.isStreamMode) {
-        signal.setDone()
-        rep.updateIfEmpty(Return(Ok))
-        signal
-      } else {
-        trans.read() flatMap { packet =>
-          rep.become(decodePacket(packet, req, signal))
-          signal
-        }
-      }
+      decode(req, rep)
     }
 
   /**
-    * Returns a Packet representing the encoded request, using
-    * the protocol codecs.
+    * Encodes a request using the protocol codecs.
     * @param req is the request to encode
     * @return A Packet containing the raw bytes
     */
-  private[this] def encodePacket(req: Request) = req match {
+  private[this] def encode(req: Request) = req match {
     // TODO: bring the codecs into scope implicitly
     case e: EnableStream =>
       Packet(Protocol.enableStream.encode(e).require.toByteArray)
@@ -69,68 +62,52 @@ class ClientDispatcher(trans: Transport[Packet, Packet], startup: Startup)
     case Flush =>
       Packet(Protocol.flushCodec.encode(()).require.toByteArray)
   }
-
   /**
-   * Returns a Future[Result] representing the decoded
-   * packet. Some packets represent the start of a longer
-   * transmission. These packets are distinguished by
-   * the command used to generate the transmission.
-   *
-   * @param packet The first packet in the result.
-   * @param req Is the Request that initiated the response - we can make
-    *            this assumption here because we are using a serial queue
-   * @param signal A future used to signal completion. When this
-   * future is satisfied, subsequent requests can be dispatched.
-   */
-  private[this] def decodePacket(
-    packet: Packet,
-    req: Request,
-    signal: Promise[Unit]
-  ): Future[Result] = {
-
-    def inner(raw: Array[Byte]) = req match {
-      case w: Write => Ok
-      case Flush => Ok
-      case e: EnableStream => Ok
-
-      case Query(_bucket, _metric, time, count) =>
-        val result: List[Value] =
-          Protocol.queryResultDecoder.decode(BitVector(raw)).require.value
-
-        val startTime = time
-        val endTime = time + count
-        val range = startTime to endTime
-
-        val datapoints = range
-          .zip(result)
-          .collect {
-            case (t, i: IntValue) => DataPoint(t, i.value.toDouble)
-            case (t, f: FloatValue) => DataPoint(t, f.value)
-          }
-        QueryResult(datapoints.toList)
-    }
-
-    val res = Try {
-      val bytes = BufferReader(packet.body).takeRest()
-      inner(bytes)
-    }
-
-    signal.setDone()
-    const(res)
+   * Decodes a response using the protocol codecs. Some streamed responses may
+   * span multiple frames and they are aggregated until an EOF signal is
+   * encountered.
+    * @param req is the request to encode
+    * @param rep is the writable value promise
+    * @return Complete the promise withe the actual value
+    */
+  private[this] def decode(req: Request, rep: Promise[Result]) = req match {
+    case w: Write => ok()
+    case Flush => ok()
+    case e: EnableStream => ok()
+    case Query(_bucket, _metric, time, count) =>
+      signal.setDone()
+      rep.setValue(QueryResult(datapoints))
+      signal
   }
 
-  /**
-   * Wrap a Try[T] into a Future[T]. This is useful for
-   * transforming decoded results into futures. Any Throw
-   * is assumed to be a failure to decode and thus a synchronization
-   * error (or corrupt data) between the client and server.
-   */
-  private def const[T](result: Try[T]): Future[T] =
-    Future.const(result rescue { case exc => Throw(exc) })
+  private[this] def ok(): Future[Unit] = {
+    val signal = new Promise[Unit]
+    if (startup.isStreamMode) {
+      signal.setDone()
+      rep.updateIfEmpty(Return(Ok))
+      signal
+    } else {
+      trans.read().flatMap { _ =>
+        rep.updateIfEmpty(Return(Ok))
+        signal
+      }
+    }
+  }
+
+  private[this] def datapoints(): AsyncStream[Value] =
+    AsyncStream.fromFuture(trans.read()).flatMap { packet =>
+      BufferReader(packet.body).takeRest() match {
+        case raw if raw.deep == eof.deep => AsyncStream.empty
+        case raw =>
+          val decoded = Protocol.queryResultDecoder.decode(BitVector(raw)).require.value
+          AsyncStream.fromSeq[Value](decoded) ++ datapoints()
+      }
+    }
 }
 
 object ClientDispatcher {
   private val cancelledRequestExc = new CancelledRequestException
+
   private val wrapWriteException: PartialFunction[Throwable, Future[Nothing]] = {
     case exc: Throwable => Future.exception(WriteException(exc))
   }

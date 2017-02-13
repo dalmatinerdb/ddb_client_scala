@@ -11,17 +11,14 @@ private[transport] final class PacketFrameDecoder extends FrameDecoder {
 
   override def decode(ctx: ChannelHandlerContext, channel: Channel,
                       buffer: ChannelBuffer): Packet = {
-
-    if(buffer.readableBytes < Packet.HeaderSize) return null
-
+    if (buffer.readableBytes < Packet.HeaderSize) return null
     buffer.markReaderIndex()
-    val length = buffer.readInt
 
+    val length = buffer.readInt
     if(buffer.readableBytes < length) {
       buffer.resetReaderIndex()
       return null
     }
-
     // include all the original data in the buffer
     buffer.resetReaderIndex()
     val body = new Array[Byte](length + Packet.HeaderSize)

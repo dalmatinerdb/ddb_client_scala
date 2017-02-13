@@ -81,9 +81,10 @@ object BufferReader {
   private[this] final class Netty3BufferReader(val underlying: ChannelBuffer)
     extends BufferReader with Buffer {
     def offset: Int          = underlying.readerIndex
+
     def readable(width: Int) = underlying.readableBytes >= width
 
-    def readByte: Byte          = underlying.readByte()
+    def readByte: Byte = underlying.readByte()
 
     def skip(n: Int) = underlying.skipBytes(n)
 

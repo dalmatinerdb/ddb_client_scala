@@ -1,5 +1,7 @@
 package dalmatinerdb.client
 
+import com.twitter.concurrent.AsyncStream
+
 /**
   * All datapoints values are represented as a decimal point in time
   * @param time the timestamp of the recorded value
@@ -21,10 +23,4 @@ case object Ok extends Result
   * Representation of the result of a GET operation - all missing values for the time range requested are removed
   * @param points are a list of points in time/value pairs
   */
-case class QueryResult(points: List[DataPoint]) extends Result
-
-/**
-  * Internal representation of the result of a GET operation
-  * @param points are a list of either floats, ints or missing values
-  */
-private[client] case class RawQueryResult(points: List[Value])
+case class QueryResult(values: AsyncStream[Value]) extends Result

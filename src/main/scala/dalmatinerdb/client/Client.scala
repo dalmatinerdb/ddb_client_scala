@@ -26,7 +26,7 @@ final class StdClient(val factory: ServiceFactory[Request, Result]) extends Clie
   private[this] val service = factory.toService
 
   def query(sql: String): Future[Result] =
-    throw new NotImplementedError("Use query(bucket, metric, time, count) for the mean time")
+    throw new NotImplementedError("Use query(bucket, metric, time, count) form")
 
   def query(bucket: String, metricPath: String, time: Long, count: Long): Future[Result] =
     service(Query(bucket, new Metric(metricPath), time, count))

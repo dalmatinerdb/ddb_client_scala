@@ -28,3 +28,5 @@ libraryDependencies ++= Seq(
   "org.scalacheck" %% "scalacheck" % "1.12.5" % "test",
   "org.xerial.snappy" % "snappy-java" % "1.1.3-M2"
 )
+
+publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
