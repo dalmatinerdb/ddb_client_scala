@@ -71,16 +71,17 @@ class ClientDispatcher(trans: Transport[Packet, Packet], startup: Startup)
     * @return Complete the promise withe the actual value
     */
   private[this] def decode(req: Request, rep: Promise[Result]) = req match {
-    case w: Write => ok()
-    case Flush => ok()
-    case e: EnableStream => ok()
+    case w: Write => ok(rep)
+    case Flush => ok(rep)
+    case e: EnableStream => ok(rep)
     case Query(_bucket, _metric, time, count) =>
+      val signal = new Promise[Unit]
       signal.setDone()
       rep.setValue(QueryResult(datapoints))
       signal
   }
 
-  private[this] def ok(): Future[Unit] = {
+  private[this] def ok(rep: Promise[Result]): Future[Unit] = {
     val signal = new Promise[Unit]
     if (startup.isStreamMode) {
       signal.setDone()
