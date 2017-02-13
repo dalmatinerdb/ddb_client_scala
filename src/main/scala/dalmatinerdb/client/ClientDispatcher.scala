@@ -77,7 +77,7 @@ class ClientDispatcher(trans: Transport[Packet, Packet], startup: Startup)
     case Query(_bucket, _metric, time, count) =>
       val signal = new Promise[Unit]
       signal.setDone()
-      rep.setValue(QueryResult(datapoints))
+      rep.setValue(QueryResult(datapoints(time)))
       signal
   }
 
@@ -95,13 +95,21 @@ class ClientDispatcher(trans: Transport[Packet, Packet], startup: Startup)
     }
   }
 
-  private[this] def datapoints(): AsyncStream[Value] =
+  private[this] def datapoints(time: Long): AsyncStream[DataPoint] =
     AsyncStream.fromFuture(trans.read()).flatMap { packet =>
       BufferReader(packet.body).takeRest() match {
         case raw if raw.deep == eof.deep => AsyncStream.empty
         case raw =>
           val decoded = Protocol.queryResultDecoder.decode(BitVector(raw)).require.value
-          AsyncStream.fromSeq[Value](decoded) ++ datapoints()
+          val end = time + decoded.length
+          val timeRange = (time to end).toArray
+          val points = decoded.zip(timeRange).map {
+            case (f: FloatValue, t) => (t, Some(f.value))
+            case (i: IntValue, t) => (t, Some(i.value.toDouble))
+            case (e: EmptyValue, t) => (t, Option.empty[Double])
+          }
+
+          AsyncStream.fromSeq[DataPoint](points.toSeq) ++ datapoints(time)
       }
     }
 }

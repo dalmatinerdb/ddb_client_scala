@@ -45,15 +45,16 @@ Queries are formulated by supplying an initial timestamp and a count of the numb
 
 The result will be a `QueryResult` type consisting of a resolution and a sequence of time/value `Datapoint` pairs:
 
-    DataPoint(1443189847,32.0)
-    DataPoint(1443189877,20.0)
-    DataPoint(1443189907,50.0)
+    (1443189847,Some(32.0))
+    (1443189877,Some(20.0))
+    (1443189907,Some(50.0))
     ....
-    DataPoint(1443190657,20.0)
-    DataPoint(1443190687,27.0)
-    DataPoint(1443190717,20.0)
-    DataPoint(1443190747,37.0)
-    DataPoint(1443190777,20.0)
+    (1443190657,Some(20.0))
+    (1443190658,None) <- no datapoint was recorded at this time
+    (1443190687,Some(27.0))
+    (1443190717,Some(20.0))
+    (1443190747,Some(37.0))
+    (1443190777,Some(20.0))
 
 Note that all results are asynchronous and blocking on these results (as above) is discouraged in production.
 
