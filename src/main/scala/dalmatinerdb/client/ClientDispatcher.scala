@@ -95,7 +95,7 @@ class ClientDispatcher(trans: Transport[Packet, Packet], startup: Startup)
     }
   }
 
-  private[this] def datapoints(time: Long): AsyncStream[DataPoint] =
+  private[this] def datapoints(time: Long): AsyncStream[List[DataPoint]] =
     AsyncStream.fromFuture(trans.read()).flatMap { packet =>
       BufferReader(packet.body).takeRest() match {
         case raw if raw.deep == eof.deep => AsyncStream.empty
@@ -109,7 +109,7 @@ class ClientDispatcher(trans: Transport[Packet, Packet], startup: Startup)
             case (e: EmptyValue, t) => (t, Option.empty[Double])
           }
 
-          AsyncStream.fromSeq[DataPoint](points.toSeq) ++ datapoints(time)
+          points +:: datapoints(time)
       }
     }
 }
