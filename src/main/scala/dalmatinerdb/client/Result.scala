@@ -14,6 +14,7 @@ case object Ok extends Result
 
 /**
   * Representation of the result of a GET operation - all missing values for the time range requested are removed
+  * @param query is the original query
   * @param points are a list of points in time/value pairs
   */
-case class QueryResult(values: AsyncStream[DataPoint]) extends Result
+case class QueryResult(query: Query, values: AsyncStream[DataPoint]) extends Result

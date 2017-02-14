@@ -1,5 +1,7 @@
 name := "ddb_client_scala"
 
+organization := "dalmatinerdb"
+
 version := "0.1"
 
 scalaVersion := "2.11.7"

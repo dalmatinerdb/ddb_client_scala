@@ -74,10 +74,10 @@ class ClientDispatcher(trans: Transport[Packet, Packet], startup: Startup)
     case w: Write => ok(rep)
     case Flush => ok(rep)
     case e: EnableStream => ok(rep)
-    case Query(_bucket, _metric, time, count) =>
+    case q@Query(_bucket, _metric, time, count) =>
       val signal = new Promise[Unit]
       signal.setDone()
-      rep.setValue(QueryResult(datapoints(time)))
+      rep.setValue(QueryResult(q, datapoints(time)))
       signal
   }
 
