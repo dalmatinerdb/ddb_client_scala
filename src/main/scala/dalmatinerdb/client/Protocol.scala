@@ -20,7 +20,8 @@ private[client] object MessageTypes {
   * Request    -> Byte Array
   * Byte Array -> Response
   */
-private[client] object Protocol {
+//private[client] object Protocol {
+object Protocol {
   import scodec.codecs._
 
   private val dataSize = 8 // in bytes

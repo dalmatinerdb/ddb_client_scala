@@ -33,6 +33,14 @@ final class FloatSpec extends FlatSpec
     expectedBytes shouldEqual encoded
   }
 
+  "Zero float" should "encode" in {
+    val floatValue = Value("0.0")
+    val expectedBytes = // <<2,1,0:48>>.
+      utils.toByteArray(Array(2, 1, 0, 0, 0, 0, 0, 0))
+    val encoded = Codec.encode(floatValue)(Protocol.valueCodec).require.bytes.toArray
+    expectedBytes shouldEqual encoded
+  }
+
   "Large float" should "encode" in {
     // 3.61e24 = 36 100 000 000 000 * 10^11
     val large = 3.61 * Math.pow(10, 24)

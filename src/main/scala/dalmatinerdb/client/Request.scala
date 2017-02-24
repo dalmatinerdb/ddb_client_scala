@@ -96,7 +96,9 @@ object FloatValue {
     val coefficient_digits = 13
     val sign = if (x >= 0) 1 else -1
     val d = Math.abs(x)
-    val exponent =  (Math.ceil(Math.log10(d)) - coefficient_digits).toInt
+    val exponent =
+      if (d == 0) 1
+      else (Math.ceil(Math.log10(d)) - coefficient_digits).toInt
     val coefficient = (d / Math.pow(10, exponent)).toLong * sign
     FloatValue(exponent, coefficient)
   }
