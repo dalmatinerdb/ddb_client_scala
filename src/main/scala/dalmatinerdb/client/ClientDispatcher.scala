@@ -109,7 +109,7 @@ class ClientDispatcher(trans: Transport[Packet, Packet], startup: Startup)
             case (e: EmptyValue, t) => (t, Option.empty[Double])
           }
 
-          points +:: datapoints(time)
+          points +:: datapoints(end)
       }
     }
 }
