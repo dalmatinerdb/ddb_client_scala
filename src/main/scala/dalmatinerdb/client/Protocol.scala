@@ -78,7 +78,9 @@ object Protocol {
     ("bucket"          | bucket                                    ) ::
     ("metric"          | metric                                    ) ::
     ("time"            | timestamp                                 ) ::
-    ("count"           | uint32                                    )
+    ("count"           | uint32                                    ) ::
+    ("rr"              | uint8                                     ) ::
+    ("r"               | uint8                                     )
   }.dropUnits.as[Query]
 
   val queryResultDecoder: Decoder[List[Value]] = new QueryResultDecoder
