@@ -44,6 +44,24 @@ object Write {
   }
 }
 
+sealed trait ReadRepairOption { def value: Int }
+object ReadRepairOption {
+  case object Off extends ReadRepairOption { val value = 0 }
+  case object On extends ReadRepairOption { val value = 1 }
+  case object Default extends ReadRepairOption { val value = 2 }
+}
+
+sealed trait ReadQuorumOption { def value: Int }
+object ReadQuorumOption {
+  case object Default extends ReadQuorumOption { val value = 0 }
+  case object N extends ReadRepairOption { val value = 255 }
+  case class R(val value: Int) extends ReadQuorumOption
+}
+
+case class ReadOptions(val readRepair: ReadRepairOption,
+                       val quorum: ReadQuorumOption)
+
+
 /**
   * Queries the given metric for the specified number of data points.
   * A [[dalmatinerdb.client.QueryResult]] will be eventually returned.
@@ -52,25 +70,30 @@ object Write {
   * @param time The starting time for the window of points to be returned
   * @param count The number of points to return - note that the resultset
   *              may have lower cardinality due to missing values
+  * @param opts Consistency parameters for a read operation
   */
-final case class Query(bucket: String, metric: List[String], time: Long, count: Long) extends Request
+final case class Query(bucket: String,
+                       metric: List[String],
+                       time: Long,
+                       count: Long,
+                       rr: Int,
+                       quorum: Int) extends Request
 
 object Query {
 
+  val defaultReadOptions = ReadOptions(ReadRepairOption.Default, ReadQuorumOption.Default)
+
   /** Factory function for instantiating a [[dalmatinerdb.client.Query]] */
-  def apply(bucket: String, metric: Metric, timestamp: Long, count: Long): Query = {
+  def apply(bucket: String,
+            metric: Metric,
+            timestamp: Long,
+            count: Long,
+            opts: ReadOptions = defaultReadOptions): Query = {
     require(bucket.nonEmpty, "Bucket cannot be empty")
     require(metric.parts.nonEmpty, "Metric path cannot be empty")
     require(timestamp > 0, "Timestamp cannot be empty")
-    Query(bucket, metric.parts.toList, timestamp, count)
+    Query(bucket, metric.parts.toList, timestamp, count, opts.readRepair.value, opts.quorum.value)
   }
-
-  /** Factory function for instantiating a [[dalmatinerdb.client.Query]] */
-  def apply(bucket: String, metric: Metric, timestamp: String, count: Long): Query = {
-    require(timestamp.nonEmpty, "Timestamp cannot be empty")
-    apply(bucket, metric, timestamp.toLong, count)
-  }
-
 }
 
 /**
