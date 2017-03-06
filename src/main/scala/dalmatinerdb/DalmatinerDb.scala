@@ -4,7 +4,7 @@ import com.twitter.finagle.client.{DefaultPool, StackClient, StdStackClient, Tra
 import com.twitter.finagle.netty3.Netty3Transporter
 import com.twitter.finagle.transport.Transport
 import com.twitter.finagle.{Name, Service, ServiceFactory, Stack}
-import com.twitter.util.{Duration, Future}
+import com.twitter.util.{Duration, Future, StorageUnit}
 import com.twitter.finagle.param.ProtocolLibrary
 
 import dalmatinerdb.client.transport.DalmatinerDbClientPipelineFactory

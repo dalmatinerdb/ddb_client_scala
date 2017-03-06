@@ -66,6 +66,34 @@ For efficiency reasons, the Dalmatiner TCP endpoint can only accept incoming dat
 
     val client = DalmatinerDb.client.withBucket("fd").withDelay(2).newRichClient("127.0.0.1:5555")
     val wres = client.write("base.test", 1468419405, 0.1D)
+    
+    
+## Additional client configuration
+The client may be configured as any other Finagle client.  For more information on configuring the client transport, see the Finagle [documentation](https://twitter.github.io/finagle/docs/com/twitter/finagle/param/ClientTransportParams.html)
+
+For example, to set the transport verbosity:
+```scala
+    DalmatinerDb.client
+      .withBucket(Bucket)
+      .withDelay(StreamDelay)
+      .configured(Transport.Verbose(true))
+      .newRichClient(s"${settings.ddbHost}")
+```
+
+Or, to set buffer sizes:
+```
+    val sendBuffer = 10.kilobytes
+    val receiveBuffer = 10.kilobytes
+
+    DalmatinerDb.client
+      .withBucket(Bucket)
+      .withDelay(StreamDelay)
+      .configured(Transport.Verbose(true))
+      .configured(
+        Transport.BufferSizes(Some(sendBuffer.inBytes.toInt),
+                              Some(receiveBuffer.inBytes.toInt)))
+      .newRichClient(s"${settings.ddbHost}")
+ ```
 
 ## TODO
 

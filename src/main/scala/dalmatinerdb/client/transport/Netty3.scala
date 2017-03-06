@@ -35,7 +35,7 @@ private[transport] final class PacketWriter extends SimpleChannelDownstreamHandl
           val cb = p.toChannelBuffer
           Channels.write(ctx, evt.getFuture, cb, evt.getRemoteAddress)
         } catch {
-          case NonFatal(e) =>
+          case scala.util.control.NonFatal(e) =>
             val _ = evt.getFuture.setFailure(new ChannelException(e.getMessage))
         }
 

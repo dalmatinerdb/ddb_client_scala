@@ -32,3 +32,14 @@ libraryDependencies ++= Seq(
 )
 
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
+
+lazy val assemblySettings = Seq(
+  assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
+  test in assembly := {},
+  artifact in (Compile, assembly) := {
+    val art = (artifact in (Compile, assembly)).value
+    art.copy(`classifier` = Some("assembly"))
+  }
+) ++ addArtifact(artifact in (Compile, assembly), assembly).settings
+
+lazy val root = (project in file(".")).settings(assemblySettings)
