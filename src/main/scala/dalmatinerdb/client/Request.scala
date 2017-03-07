@@ -44,24 +44,6 @@ object Write {
   }
 }
 
-sealed trait ReadRepairOption { def value: Int }
-object ReadRepairOption {
-  case object Off extends ReadRepairOption { val value = 0 }
-  case object On extends ReadRepairOption { val value = 1 }
-  case object Default extends ReadRepairOption { val value = 2 }
-}
-
-sealed trait ReadQuorumOption { def value: Int }
-object ReadQuorumOption {
-  case object Default extends ReadQuorumOption { val value = 0 }
-  case object N extends ReadRepairOption { val value = 255 }
-  case class R(val value: Int) extends ReadQuorumOption
-}
-
-case class ReadOptions(val readRepair: ReadRepairOption,
-                       val quorum: ReadQuorumOption)
-
-
 /**
   * Queries the given metric for the specified number of data points.
   * A [[dalmatinerdb.client.QueryResult]] will be eventually returned.
@@ -92,7 +74,7 @@ object Query {
     require(bucket.nonEmpty, "Bucket cannot be empty")
     require(metric.parts.nonEmpty, "Metric path cannot be empty")
     require(timestamp > 0, "Timestamp cannot be empty")
-    Query(bucket, metric.parts.toList, timestamp, count, opts.readRepair.value, opts.quorum.value)
+    Query(bucket, metric.parts, timestamp, count, opts.readRepair.value, opts.quorum.value)
   }
 }
 

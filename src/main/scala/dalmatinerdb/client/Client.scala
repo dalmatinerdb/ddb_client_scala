@@ -16,9 +16,9 @@ object Client {
 }
 
 trait Client extends Closable {
-  def query(bucket: String, metric: String, time: Long, count: Long): Future[Result]
-  def query(bucket: String, metric: String, time: Long, count: Long, opts: ReadOptions): Future[Result]
-  def write(metric: String, time: Long, value: Value): Future[Result]
+  def query(bucket: String, metric: Seq[String], time: Long, count: Long): Future[Result]
+  def query(bucket: String, metric: Seq[String], time: Long, count: Long, opts: ReadOptions): Future[Result]
+  def write(metric: Seq[String], time: Long, value: Value): Future[Result]
   def flush(): Future[Result]
   def close(): Future[Unit]
 }
@@ -29,14 +29,14 @@ final class StdClient(val factory: ServiceFactory[Request, Result]) extends Clie
   def query(sql: String): Future[Result] =
     throw new NotImplementedError("Use query(bucket, metric, time, count) form")
 
-  def query(bucket: String, metricPath: String, time: Long, count: Long): Future[Result] =
-    service(Query(bucket, new Metric(metricPath), time, count))
+  def query(bucket: String, metric: Seq[String], time: Long, count: Long): Future[Result] =
+    service(Query(bucket, Metric(metric.toList), time, count))
 
-  def query(bucket: String, metricPath: String, time: Long, count: Long, opts: ReadOptions): Future[Result] =
-    service(Query(bucket, new Metric(metricPath), time, count, opts))
+  def query(bucket: String, metric: Seq[String], time: Long, count: Long, opts: ReadOptions): Future[Result] =
+    service(Query(bucket, Metric(metric.toList), time, count, opts))
 
-  def write(metricPath: String, time: Long, value: Value): Future[Result] =
-    service(Write(new Metric(metricPath), time, value))
+  def write(metric: Seq[String], time: Long, value: Value): Future[Result] =
+    service(Write(Metric(metric.toList), time, value))
 
   def flush(): Future[Result] =
     service(Flush)
