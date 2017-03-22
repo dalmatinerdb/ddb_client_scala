@@ -100,6 +100,7 @@ class ClientDispatcher(trans: Transport[Packet, Packet], startup: Startup)
       BufferReader(packet.body).takeRest() match {
         case raw if raw.deep == eof.deep => AsyncStream.empty
         case raw =>
+          println(s"Raw: ${raw.mkString(",")}")
           val decoded = Protocol.queryResultDecoder.decode(BitVector(raw)).require.value
           val end = time + decoded.length
           val timeRange = (time to end).toArray

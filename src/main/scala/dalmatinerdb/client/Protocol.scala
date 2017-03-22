@@ -38,7 +38,6 @@ object Protocol {
 
   val int56: Codec[Long] = new IntCodec(56)
   val int48: Codec[Long] = new IntCodec(48)
-  val flushCodec: Codec[Unit] = sentry(MessageTypes.Flush)
   val timestamp: Codec[Long] = int64
 
   val enableStream = {
@@ -83,6 +82,8 @@ object Protocol {
     ("r"               | uint8                                     )
   }.dropUnits.as[Query]
 
+  val flushCodec: Codec[Unit] = sentry(MessageTypes.Flush)
+  val doubleCodec: Codec[Double] = new DoubleCodec
   val queryResultDecoder: Decoder[List[Value]] = new QueryResultDecoder
 
   private def sentry(i: Int): Codec[Unit] = uint8.unit(i)
@@ -105,8 +106,27 @@ object Protocol {
     }
   }
 
+  // Some ddb values do not adhere to the discriminators defined for values
+  // above, therefore the default fallback is a double.
+  private class DoubleCodec extends Codec[Double] {
+    val size = 64
+    def sizeBound = SizeBound.exact(size)
+    def encode(d: Double) = ???
+    def decode(b: BitVector) = {
+      val (result, remaining) = b.splitAt(size)
+      if (result.size != size)
+        Attempt.failure(new Err.InsufficientBits(size, result.size))
+      else {
+        val r = Codec.decode(result << 1)(scodec.codecs.double)
+        Attempt.successful(DecodeResult(r.require.value, remaining))
+      }
+    }
+  }
+
   private class QueryResultDecoder extends Decoder[List[Value]] {
     private val sizeCodec = int32
+
+    private val discriminatedValues = discriminatorFallback(doubleCodec, valueCodec)
 
     private val snappy = new Codec[BitVector] {
       def sizeBound = SizeBound.unknown
@@ -135,8 +155,13 @@ object Protocol {
     def decode(buffer: BitVector) = {
       for {
         decompressed <- variableSizeBytes(int32, padding).decode(buffer)
-        values <- list(valueCodec).decode(decompressed.value)
-      } yield values
+        values <- list(discriminatedValues).decode(decompressed.value)
+      } yield {
+        values.map(_.collect {
+          case Right(v) => v
+          case Left(v) => FloatValue(v)
+        })
+      }
     }
   }
 }
