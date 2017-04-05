@@ -30,10 +30,14 @@ final class StdClient(val factory: ServiceFactory[Request, Result]) extends Clie
     throw new NotImplementedError("Use query(bucket, metric, time, count) form")
 
   def query(bucket: String, metric: Seq[String], time: Long, count: Long): Future[Result] =
-    service(Query(bucket, Metric(metric.toList), time, count))
+    withService { svc =>
+      svc(Query(bucket, Metric(metric.toList), time, count))
+    }
 
   def query(bucket: String, metric: Seq[String], time: Long, count: Long, opts: ReadOptions): Future[Result] =
-    service(Query(bucket, Metric(metric.toList), time, count, opts))
+    withService { svc =>
+      svc(Query(bucket, Metric(metric.toList), time, count, opts))
+    }
 
   def write(metric: Seq[String], time: Long, value: Value): Future[Result] =
     service(Write(Metric(metric.toList), time, value))
@@ -41,5 +45,12 @@ final class StdClient(val factory: ServiceFactory[Request, Result]) extends Clie
   def flush(): Future[Result] =
     service(Flush)
 
-  def close(deadline: Time): Future[Unit] = service.close(deadline)
+  def close(deadline: Time): Future[Unit] = factory.close(deadline)
+
+  private def withService(f: Service[Request, Result] => Future[Result]) =
+    for {
+      svc <- factory()
+      result <- f(svc)
+      _ <- svc.close()
+    } yield result
 }
