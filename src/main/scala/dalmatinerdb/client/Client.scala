@@ -5,7 +5,7 @@ import scodec.codecs._
 
 import com.twitter.finagle._
 import com.twitter.finagle.ServiceFactory
-import com.twitter.util.{Closable, Future, Time}
+import com.twitter.util.{Closable, Future, Time, Return, Throw}
 
 object Client {
   /**
@@ -48,9 +48,14 @@ final class StdClient(val factory: ServiceFactory[Request, Result]) extends Clie
   def close(deadline: Time): Future[Unit] = factory.close(deadline)
 
   private def withService(f: Service[Request, Result] => Future[Result]) =
-    for {
-      svc <- factory()
-      result <- f(svc)
-      _ <- svc.close()
-    } yield result
+    factory() flatMap { svc =>
+      f(svc).transform {
+        case Return(r) =>
+          svc.close()
+          Future.value(r)
+        case Throw(e) =>
+          svc.close()
+          Future.exception(e)
+      }
+    }
 }
