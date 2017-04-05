@@ -6,6 +6,7 @@ import com.twitter.finagle.transport.Transport
 import com.twitter.finagle.{Name, Service, ServiceFactory, Stack}
 import com.twitter.util.{Duration, Future, StorageUnit}
 import com.twitter.finagle.param.ProtocolLibrary
+import com.twitter.finagle.service.RetryBudget
 
 import dalmatinerdb.client.transport.DalmatinerDbClientPipelineFactory
 import dalmatinerdb.client.{Request, Result, Startup}
@@ -88,6 +89,11 @@ object DalmatinerDb extends com.twitter.finagle.Client[Request, Result]
      */
     def withDelay(delay: Int): Client =
       configured(Startup.Delay(Some(delay)))
+
+    override def withRetryBudget(budget: RetryBudget): Client =
+      super.withRetryBudget(budget)
+    override def withRetryBackoff(backoff: Stream[Duration]): Client =
+      super.withRetryBackoff(backoff)
 
     // Java-friendly forwarders
     // See https://issues.scala-lang.org/browse/SI-8905
