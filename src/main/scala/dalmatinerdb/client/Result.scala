@@ -1,7 +1,5 @@
 package dalmatinerdb.client
 
-import com.twitter.concurrent.AsyncStream
-
 /**
   * Represents a message from the server to the client
   */
@@ -17,4 +15,4 @@ case object Ok extends Result
   * @param query is the original query
   * @param points are a list of points in time/value pairs
   */
-case class QueryResult(query: Query, values: AsyncStream[List[DataPoint]]) extends Result
+case class QueryResult(query: Query, values: Seq[DataPoint]) extends Result

@@ -71,13 +71,17 @@ class ClientDispatcher(trans: Transport[Packet, Packet], startup: Startup)
     * @return Complete the promise withe the actual value
     */
   private[this] def decode(req: Request, rep: Promise[Result]) = req match {
-    case w: Write => ok(rep)
-    case Flush => ok(rep)
-    case e: EnableStream => ok(rep)
+    case w: Write =>
+      ok(rep)
+    case Flush =>
+      ok(rep)
+    case e: EnableStream =>
+      ok(rep)
     case q@Query(_bucket, _metric, time, count, _rr, _r) =>
       val signal = new Promise[Unit]
+      val asyncStream = datapoints(time)
       signal.setDone()
-      rep.setValue(QueryResult(q, datapoints(time)))
+      rep.become(asyncStream.toSeq.map(xs => QueryResult(q, xs.flatten)))
       signal
   }
 
