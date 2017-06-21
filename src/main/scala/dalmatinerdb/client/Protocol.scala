@@ -151,6 +151,7 @@ object Protocol {
       discriminated[BitVector].by(int8)
         .\ (1) { case unpadded => unpadded } (snappy)
         .\ (2) { case padded => padded } (snappy)
+        .\ (3) { case padded => padded } (snappy)
 
     def decode(buffer: BitVector) = {
       for {
