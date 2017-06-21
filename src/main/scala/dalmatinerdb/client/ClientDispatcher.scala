@@ -19,6 +19,7 @@ class ClientDispatcher(trans: Transport[Packet, Packet], startup: Startup)
   import ClientDispatcher._
 
   private val eof = Array[Byte](0.toByte, 0.toByte, 0.toByte, 1.toByte, 0.toByte)
+  private val undefAggr = Array[Byte](0.toByte, 0.toByte, 0.toByte, 1.toByte, -1.toByte)
 
   // The assumption is that one dispatcher is used per connection, as this
   // could be a race condition otherwise
@@ -103,6 +104,7 @@ class ClientDispatcher(trans: Transport[Packet, Packet], startup: Startup)
     AsyncStream.fromFuture(trans.read()).flatMap { packet =>
       BufferReader(packet.body).takeRest() match {
         case raw if raw.deep == eof.deep => AsyncStream.empty
+        case raw if raw.deep == undefAggr.deep => datapoints(time)
         case raw =>
           val decoded = Protocol.queryResultDecoder.decode(BitVector(raw)).require.value
           val end = time + decoded.length
